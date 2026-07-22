@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://kj76bv18hfgj"]
+
+[ext_resource type="Script" uid="uid://cy6ux3vf8fqrf" path="res://hero.gd" id="1_p1r5x"]
+[ext_resource type="Script" uid="uid://ioo0v7q8kjyl" path="res://playerFSM.gd" id="2_u1ipw"]
+[ext_resource type="Shader" uid="uid://drvydi0c0t2rd" path="res://dash.gdshader" id="3_u1ipw"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xpv8o"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u1ipw"]
+render_priority = 0
+shader = ExtResource("3_u1ipw")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/roughness = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/dash_intensity = 0.0
+shader_parameter/stretch_amount = 1.0
+shader_parameter/edge_fade = 1.0
+shader_parameter/dash_color = Color(1, 0, 1, 1)
+shader_parameter/dash_velocity = Vector3(0, 0, 0)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_p1r5x"]
+material = SubResource("ShaderMaterial_u1ipw")
+
+[node name="hero" type="CharacterBody3D" unique_id=806947177]
+script = ExtResource("1_p1r5x")
+
+[node name="collision_hero" type="CollisionShape3D" parent="." unique_id=1422131791]
+shape = SubResource("CapsuleShape3D_xpv8o")
+
+[node name="fsm" type="Node3D" parent="." unique_id=1741068031]
+visible = false
+script = ExtResource("2_u1ipw")
+
+[node name="model" type="MeshInstance3D" parent="." unique_id=991079535]
+mesh = SubResource("CapsuleMesh_p1r5x")
+
+[node name="groundborne_ray" type="RayCast3D" parent="." unique_id=1751338839]
+target_position = Vector3(0, -4, 0)
+
+[node name="jump_buffer_timer" type="Timer" parent="." unique_id=2043007005]
+
+[node name="dash_post_timer" type="Timer" parent="." unique_id=28218784]
+
+[connection signal="timeout" from="dash_post_timer" to="." method="_on_dash_post_timer_timeout"]
