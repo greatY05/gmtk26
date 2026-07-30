@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bcdlfiv07vyyh"]
+
+[ext_resource type="Texture2D" uid="uid://dko3um5oc6pvx" path="res://rustmoss.webp" id="1_f2b4f"]
+[ext_resource type="Shader" uid="uid://8j2kaplfwf4g" path="res://stochastic filler.gdshader" id="2_3rx6q"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_y2354"]
+render_priority = 0
+shader = ExtResource("2_3rx6q")
+shader_parameter/albedo = ExtResource("1_f2b4f")
+shader_parameter/triplanar_scale = 0.18400000804148
+shader_parameter/triplanar_sharpness = 1.0
+shader_parameter/is_triplanar = true
+shader_parameter/noise_scale = 0.566000026885
+shader_parameter/noise_darken_strength = 0.150000007125
+
+[resource]
+next_pass = SubResource("ShaderMaterial_y2354")
+albedo_texture = ExtResource("1_f2b4f")
+uv1_scale = Vector3(0.075, 0.075, 0.075)

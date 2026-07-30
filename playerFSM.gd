@@ -7,24 +7,41 @@ func _ready():
 	add_state("run")        #3
 	add_state("dash")       #4
 	add_state("fall")       #5
-	#add_state("shooting")   #6
-	add_state("jump")       #7
-	#add_state("wall")       #8
-	#add_state("climb")      #9
-	add_state("hanging")    #10
+	#add_state("shooting")   
+	add_state("jump")        #6
+	add_state("airjump")     #7
+	add_state("dashjump")    #8
+	add_state("death")    #8
+	#add_state("wall")       
+	#add_state("climb")      
+	#add_state("hanging")    #8
 	call_deferred("set_state", states.idle) #sets state during idle time avoiding runtime issues, letting parent init states properly
+	
+	parent.cogs_left = parent.cogs_allowed
+
 
 
 func _input(event: InputEvent) -> void:
-	if [states.fall, states.idle, states.run, states.walk, states.jump].has(state): #check if our current state is within the given list
+	if [states.fall, states.idle, states.run, states.walk, states.jump, states.airjump, states.dash].has(state): #check if our current state is within the given list
 		#jump
 		if Input.is_action_just_pressed("jump"):
-			parent._jump()
-	
+			if !parent.is_on_floor():
+				if !parent.cogs_left >0:
+					return
+				parent._air_jump()
+				set_state(states.airjump)
+			else:
+				parent._jump()
+		if Input.is_action_just_released("jump"):
+			#if !parent.is_airjumping:
+			parent._jump_release()#?
 	#if [states.climb, states.wall].has(state): #wall jumping
 		#if Input.is_action_just_pressed("jump"):
 			#parent._wall_jump()
-	
+		#if Input.is_action_just_pressed("ui_focus_next"): ##dev mode
+			#parent._collected_cog()
+			#parent.cogs_left = 99
+			#parent.cogs_allowed = 99
 	#if Input.is_action_just_pressed("light"):
 		#parent.flashlight.visible = !parent.flashlight.visible
 	
@@ -41,7 +58,7 @@ func _input(event: InputEvent) -> void:
 		#if parent.spears.size() > 0:
 			#parent._fire_spear(parent.spears[0])
 	
-	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE: #capture mouse on click
+	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE and !$"../../menu".visible: #capture mouse on click
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
 	if Input.is_action_just_pressed("esc") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED: #free mouse when esc
@@ -58,6 +75,7 @@ func _input(event: InputEvent) -> void:
 	##temp
 
 func _state_logic(delta):
+	#print(state)
 	if !parent.camera:
 		return
 	#uses player script as a library of sorts, calls to grab input, applies movement and gravity
@@ -65,6 +83,12 @@ func _state_logic(delta):
 	#parent._rotate_model()
 	parent._apply_gravity(delta)
 	parent._apply_movement(delta)
+	
+	#sound that uses delta
+	if state == states.run:
+		parent._update_footstep_timer(delta, true)
+	else:
+		parent._update_footstep_timer(delta, false)
 
 
 func _get_transition(delta):
@@ -73,35 +97,73 @@ func _get_transition(delta):
 			if !parent.is_on_floor():
 				if parent.velocity.y > 0:
 					return states.jump
-				elif parent.velocity.y < 0:
+				elif parent.velocity.y <= 0:
 					return states.fall
 			elif parent.velocity.x != 0:
 				return states.run
+			elif parent.is_dashjumping:
+				return states.dashjump
 		states.run:
 			if !parent.is_on_floor():
-				if parent.velocity.y < 0:
+				if parent.velocity.y > 0:
 					return states.jump
-				elif parent.velocity.y > 0:
+				elif parent.velocity.y <= 0:
 					return states.fall
 			elif parent.velocity.x == 0:
 				return states.idle
+			elif parent.is_dashing:
+				return states.dash
+			elif parent.is_dashjumping:
+				return states.dashjump
 		states.jump:
 			if parent.is_on_floor():
 				return states.idle
-			elif parent.velocity.y >= 0:
+			elif parent.is_dashing:
+				return states.dash
+			elif parent.velocity.y <= 0:
 				return states.fall
-#			if parent._is_on_wall():
-#				return states.wall
+			elif parent.is_airjumping:
+				return states.airjump
+			elif parent.is_dashjumping:
+				return states.dashjump
 		states.fall:
 			if parent.is_on_floor():
 				#parent._hit_floor()
 				print("just hit ground")
 				return states.idle
-			elif parent.velocity.y < 0:
+			elif parent.is_airjumping:
+				return states.airjump
+			elif parent.velocity.y > 0:
 				return states.jump
+			elif parent.is_dashing:
+				return states.dash
 		states.dash:
 			#elif parent.velocity.y < 0:
-			return states.dash
+			if !parent.is_dashing:
+				if parent.is_on_floor():
+					return states.idle
+				elif parent.velocity.y <= 0:
+					return states.fall
+				elif parent.velocity.y >= 0:
+					return states.jump
+			elif parent.is_dashjumping:
+				return states.dashjump
+			elif parent.is_airjumping:
+				return states.airjump
+		states.airjump:
+			if parent.velocity.y <= 0:
+				return states.fall
+			elif parent.is_on_floor():
+				return states.idle
+			elif parent.is_dashjumping:
+				return states.dashjump
+		states.dashjump:
+			if parent.velocity.y <= 7:
+				return states.jump
+			elif parent.is_airjumping:
+				return states.airjump
+		states.death:
+			pass
 #		states.wall:
 #			if !parent._is_on_wall():
 #				return states.fall
@@ -112,17 +174,43 @@ func _get_transition(delta):
 #for anim
 func _enter_state(new_state, old_state):
 	match new_state:
-		states.idle:
-			pass#states.anim_player.play("idle")
-		states.run:
-			pass#states.anim_player.play("run")
-		states.jump:
-			pass#parent.anim_player.play("jump")
-		states.fall:
-			pass#parent.anim_player.play()
 		states.dash: 
+			if !parent.is_frozen:
+				parent.animation_player.play("dash")
+				print("yo yo dash")
+				$"../sounds/dash".play()
 			#parent.anim_player.play("fall")
-			parent._start_dash_jump_window()
+			pass#parent._start_dash_jump_window()
+		states.dashjump:
+			if !parent.is_frozen:
+				$"../sounds/dash".stop()
+				$"../sounds/dashjump".play()
+			parent.animation_player.play("dashjump")
+		states.jump:
+			if !parent.is_frozen:
+				$"../sounds/jump".play()
+			
+			if parent.velocity.y  >  30:
+				print(parent.velocity.y)
+				parent.animation_player.play("jump peak")
+			else:
+				parent.animation_player.play("jump raise")
+			#pass#parent.anim_player.play("jump")
+		states.fall:
+			parent.animation_player.play("fall")
+			pass#parent.anim_player.play()
+		states.idle:
+			parent.animation_player.play("idle")
+			#pass#states.anim_player.play("idle")
+		states.run:
+			parent.animation_player.play("run")
+			#pass#states.anim_player.play("run")
+		states.airjump:
+			if !parent.is_frozen:
+				$"../sounds/dash".stop()
+			
+			pass#$"../sounds/airjump".stop()
+			#$"../sounds/airjump".play()
 
 func _exit_state(new_state, old_state):
 	pass

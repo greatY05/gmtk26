@@ -13,26 +13,26 @@ extends Node3D
 @export var catchup_forward = 0.1
 
 @export_group("Vertical - grounded")
-@export var damp_factor_y_ground = 0.06
+@export var damp_factor_y_ground = 0.025
 
 @export_group("Vertical - rising (deadzone box)")
 @export var deadzone_up = 2.0
-@export var catchup_vertical_air = 0.01 
+@export var catchup_vertical_air = 0.09 
 
 @export_group("Vertical - falling (continuous, keeps player upper-half)")
 @export var fall_view_offset = 4.0        # camera sits this far below player while falling
-@export var fall_catchup = 0.08
+@export var fall_catchup = 0.01
 @export var min_fall_margin = 1.0         # camera can never get closer than this - player can't cross center
 
 var cam_offset = Vector3(0, 1.5, 0)
+
+@export var max_ground_step = 1.0  # max y-difference treated as "just a stair/ramp" vs "an edge"
+var last_ground_contact = 0.0
 
 func _ready() -> void:
 	camera_pivot.position = cam_offset
 	if target:
 		position = target.position + Vector3(0, cam_offset.y, 0)
-
-@export var deadzone_right_max = 1.3      # how far it's allowed to stretch under high speed
-@export var speed_for_max_stretch = 12.0  # speed at which the stretch caps out
 
 func _process(delta: float) -> void:
 	var cam_fwd = -camera_pivot.global_transform.basis.z
@@ -48,30 +48,35 @@ func _process(delta: float) -> void:
 	var horizontal_speed = Vector3(target.velocity.x, 0, target.velocity.z).length()
 	var moving = horizontal_speed > move_threshold
 
-	var speed_factor = clamp(horizontal_speed / speed_for_max_stretch, 0.0, 1.0)
-	var effective_deadzone_right = lerp(deadzone_right, deadzone_right_max, speed_factor)
-
 	var move = Vector3.ZERO
+	# forward/back: always continuously tracked, no deadzone
 	move += cam_fwd * offset_fwd * catchup_forward
 
-	if abs(offset_right) > effective_deadzone_right:
-		var excess = offset_right - sign(offset_right) * effective_deadzone_right
-		move += cam_right * excess * catchup_right
-	elif not moving:
+	# left/right: deadzone while moving, recenter while idle
+	if moving:
+		if abs(offset_right) > deadzone_right:
+			var excess = offset_right - sign(offset_right) * deadzone_right
+			move += cam_right * excess * catchup_right
+	else:
 		move += cam_right * offset_right * recenter_damp
 
 	position.x += move.x
 	position.z += move.z
 
 	#vertical - Y handling
-	if target._is_groundborne():
+	if target._is_groundborne(): 
 		var ground_y = target._get_ground_y()
-		position.y += (ground_y + cam_offset.y - position.y) * damp_factor_y_ground
-	elif target.velocity.y < 0:
-		#falling logic, lets the player fall freely, stick him to the upper half of hte screen, can never pass it
-		var fall_target_y = target.position.y - fall_view_offset
-		position.y += (fall_target_y - position.y) * fall_catchup
-		position.y = min(position.y, target.position.y - min_fall_margin)
+		var diff = ground_y  - last_ground_contact
+		if  abs(diff) <= ground_y - max_ground_step or target.is_on_floor()  : #logic to ignore steps of height too small - ex when going down a short block
+			last_ground_contact = ground_y
+			position.y += (last_ground_contact + cam_offset.y - position.y) * damp_factor_y_ground
+		elif !target.is_on_floor(): #lerp to ground when landing despite the diff
+			position.y += (ground_y + cam_offset.y - position.y) * damp_factor_y_ground
+			
+	elif target.velocity.y < -10:
+		#falling logic, target fall freely, stick it to the upper half of hte screen, can never pass it
+		var fall_target_y = target.position.y - max(fall_view_offset, min_fall_margin)
+		position.y += (fall_target_y - position.y) * fall_catchup + (target.velocity.y / 150)
 	else:
 		# rising  deadzone box
 		var offset_y = target.position.y - position.y
@@ -81,5 +86,5 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		camera_pivot.rotation.x -= event.screen_relative.y / target.current_mouse_sensitivity
-		camera_pivot.rotation.y -= event.screen_relative.x / target.current_mouse_sensitivity
+		rotation.y -= event.screen_relative.x / target.current_mouse_sensitivity
 		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x, deg_to_rad(-50), deg_to_rad(30))

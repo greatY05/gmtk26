@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://cgyy68mfonqxt"]
+
+[ext_resource type="Script" uid="uid://b7rb5323g8hck" path="res://cog_collectiable.gd" id="1_6qw2r"]
+[ext_resource type="PackedScene" uid="uid://cjs8p1dnm3wo2" path="res://cog.blend" id="1_hcndu"]
+[ext_resource type="Material" uid="uid://cqlwyhin1bat5" path="res://cog_mat.tres" id="2_4xf6g"]
+[ext_resource type="AudioStream" uid="uid://bkmqpileqm5ha" path="res://sounds/blipSelect.wav" id="4_5es5q"]
+[ext_resource type="PackedScene" uid="uid://dj2tpjlln3dp4" path="res://particles.tscn" id="5_5es5q"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4xf6g"]
+size = Vector3(0.69, 0.685, 0.545)
+
+[node name="cogCollectiable" type="Area3D" unique_id=291619288 groups=["collectiable"]]
+script = ExtResource("1_6qw2r")
+
+[node name="cog" parent="." unique_id=1896522170 instance=ExtResource("1_hcndu")]
+
+[node name="Torus" parent="cog/Armature/Skeleton3D" parent_id_path=PackedInt32Array(1896522170, 282683656) index="0" unique_id=1668924400]
+material_override = ExtResource("2_4xf6g")
+
+[node name="cogCol" type="CollisionShape3D" parent="." unique_id=13648543 groups=["collectiable"]]
+shape = SubResource("BoxShape3D_4xf6g")
+
+[node name="sound" type="AudioStreamPlayer3D" parent="." unique_id=1522621888]
+stream = ExtResource("4_5es5q")
+volume_db = 80.0
+max_db = 6.0
+bus = &"sfx"
+
+[node name="particles" parent="." unique_id=2064548562 instance=ExtResource("5_5es5q")]
+
+[node name="light" type="OmniLight3D" parent="." unique_id=1257805919]
+omni_range = 46.751
+omni_attenuation = 5.9
+
+[editable path="cog"]

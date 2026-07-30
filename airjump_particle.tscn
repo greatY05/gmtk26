@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://mchpavrr4u7w"]
+
+[ext_resource type="ArrayMesh" uid="uid://c6dy7p6i2h1jv" path="res://cogmesh.tres" id="1_da5i5"]
+
+[sub_resource type="Gradient" id="Gradient_iyggp"]
+offsets = PackedFloat32Array(0, 0.97252744)
+colors = PackedColorArray(0.99813074, 0.99084324, 0.95788866, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_r1f3e"]
+gradient = SubResource("Gradient_iyggp")
+
+[sub_resource type="Curve" id="Curve_kjpb2"]
+_limits = [0.0, 3.0, 0.0, 3.0]
+_data = [Vector2(0, 1), 0.0, 4.4513617, 0, 0, Vector2(2.8333333, 2.8132296), 2.185214, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_cj6ks"]
+curve = SubResource("Curve_kjpb2")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_h0fhm"]
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_cj6ks")
+color = Color(0.78205496, 0.7227567, 0.13978168, 1)
+color_ramp = SubResource("GradientTexture1D_r1f3e")
+
+[node name="airjump_particle" type="GPUParticles3D" unique_id=866393653]
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 0.59
+one_shot = true
+process_material = SubResource("ParticleProcessMaterial_h0fhm")
+draw_pass_1 = ExtResource("1_da5i5")

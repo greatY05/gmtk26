@@ -3,8 +3,16 @@
 [ext_resource type="Script" uid="uid://cy6ux3vf8fqrf" path="res://hero.gd" id="1_p1r5x"]
 [ext_resource type="Script" uid="uid://ioo0v7q8kjyl" path="res://playerFSM.gd" id="2_u1ipw"]
 [ext_resource type="Shader" uid="uid://drvydi0c0t2rd" path="res://dash.gdshader" id="3_u1ipw"]
+[ext_resource type="PackedScene" uid="uid://cbahyfnb27vjm" path="res://russ.blend" id="4_xpv8o"]
+[ext_resource type="PackedScene" uid="uid://mchpavrr4u7w" path="res://airjump_particle.tscn" id="6_h0fhm"]
+[ext_resource type="AudioStream" uid="uid://dxiyqckjuoelg" path="res://sounds/dash.wav" id="7_7a23l"]
+[ext_resource type="AudioStream" uid="uid://c8i64pte3ruv0" path="res://sounds/airjump.wav" id="7_kjpb2"]
+[ext_resource type="AudioStream" uid="uid://7t73sfix18xm" path="res://sounds/step.wav" id="7_wgyg4"]
+[ext_resource type="AudioStream" uid="uid://btditosg5eqam" path="res://sounds/dashjump.wav" id="8_kjpb2"]
+[ext_resource type="AudioStream" uid="uid://6xfv50qq6qi" path="res://sounds/jump.wav" id="10_cj6ks"]
+[ext_resource type="PackedScene" uid="uid://jfmml7x0uvd3" path="res://dust_particles.tscn" id="11_e0f4q"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xpv8o"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_u1ipw"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u1ipw"]
 render_priority = 0
@@ -21,24 +29,145 @@ shader_parameter/dash_velocity = Vector3(0, 0, 0)
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_p1r5x"]
 material = SubResource("ShaderMaterial_u1ipw")
 
-[node name="hero" type="CharacterBody3D" unique_id=806947177]
+[sub_resource type="BoxShape3D" id="BoxShape3D_xpv8o"]
+size = Vector3(1.5, 1.803, 1.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h0fhm"]
+
+[sub_resource type="Gradient" id="Gradient_wgyg4"]
+interpolation_mode = 2
+interpolation_color_space = 2
+offsets = PackedFloat32Array(0.39112905, 0.70564514)
+colors = PackedColorArray(0.16565639, 0.16565642, 0.16565639, 1, 0.16, 0.16, 0.16, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_7a23l"]
+gradient = SubResource("Gradient_wgyg4")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[node name="hero" type="CharacterBody3D" unique_id=806947177 node_paths=PackedStringArray("model")]
 script = ExtResource("1_p1r5x")
+model = NodePath("russ")
+jump_height = 2.2
+jump_time_to_peak = 0.5
+footstep_sounds = Array[AudioStream]([ExtResource("7_wgyg4")])
 
 [node name="collision_hero" type="CollisionShape3D" parent="." unique_id=1422131791]
-shape = SubResource("CapsuleShape3D_xpv8o")
+shape = SubResource("CapsuleShape3D_u1ipw")
 
 [node name="fsm" type="Node3D" parent="." unique_id=1741068031]
 visible = false
 script = ExtResource("2_u1ipw")
 
 [node name="model" type="MeshInstance3D" parent="." unique_id=991079535]
+visible = false
 mesh = SubResource("CapsuleMesh_p1r5x")
 
 [node name="groundborne_ray" type="RayCast3D" parent="." unique_id=1751338839]
 target_position = Vector3(0, -4, 0)
 
 [node name="jump_buffer_timer" type="Timer" parent="." unique_id=2043007005]
+one_shot = true
 
 [node name="dash_post_timer" type="Timer" parent="." unique_id=28218784]
+one_shot = true
+
+[node name="dash_buffer_timer" type="Timer" parent="." unique_id=1750977010]
+one_shot = true
+
+[node name="russ" parent="." unique_id=508052534 instance=ExtResource("4_xpv8o")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06022495, -0.9862698, -0.061861396)
+
+[node name="Cylinder" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="0" unique_id=1234498639]
+cast_shadow = 0
+
+[node name="Cylinder_001" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="1" unique_id=1166386510]
+cast_shadow = 0
+
+[node name="Cylinder_002" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="2" unique_id=39701469]
+cast_shadow = 0
+
+[node name="Cylinder_003" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="3" unique_id=564939346]
+cast_shadow = 0
+
+[node name="Cylinder_004" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="4" unique_id=164308888]
+cast_shadow = 0
+
+[node name="Plane" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="5" unique_id=1212956660]
+cast_shadow = 0
+
+[node name="Plane_001" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="6" unique_id=1293846238]
+cast_shadow = 0
+
+[node name="Plane_002" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="7" unique_id=1086497404]
+cast_shadow = 0
+
+[node name="Plane_003" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="8" unique_id=938655802]
+cast_shadow = 0
+
+[node name="Sphere" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="9" unique_id=1498036961]
+cast_shadow = 0
+
+[node name="Torus" parent="russ/Armature/Skeleton3D" parent_id_path=PackedInt32Array(508052534, 1444137235) index="10" unique_id=1142835890]
+cast_shadow = 0
+
+[node name="pickup_area" type="Area3D" parent="." unique_id=425294197]
+
+[node name="pickup_collision" type="CollisionShape3D" parent="pickup_area" unique_id=279048232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07119751, 0)
+visible = false
+shape = SubResource("BoxShape3D_xpv8o")
+
+[node name="airjump_particle" parent="." unique_id=866393653 instance=ExtResource("6_h0fhm")]
+
+[node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=1148846279]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, -0.87904716, 0)
+collision_mask = 2
+shape = SubResource("BoxShape3D_h0fhm")
+spring_length = 20.0
+
+[node name="Sprite3D" type="Sprite3D" parent="SpringArm3D" unique_id=1887519445]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.569991e-08, 0.3591721)
+texture = SubResource("GradientTexture2D_7a23l")
+
+[node name="sounds" type="Node3D" parent="." unique_id=1579792220]
+
+[node name="airjump" type="AudioStreamPlayer" parent="sounds" unique_id=1075894548]
+stream = ExtResource("7_kjpb2")
+bus = &"sfx"
+
+[node name="dashjump" type="AudioStreamPlayer" parent="sounds" unique_id=680562139]
+stream = ExtResource("8_kjpb2")
+bus = &"sfx"
+
+[node name="step" type="AudioStreamPlayer" parent="sounds" unique_id=178736802]
+stream = ExtResource("7_wgyg4")
+volume_db = -5.695
+pitch_scale = 0.64
+bus = &"sfx"
+
+[node name="dash" type="AudioStreamPlayer" parent="sounds" unique_id=1082581548]
+stream = ExtResource("7_7a23l")
+volume_db = -9.5
+bus = &"sfx"
+
+[node name="jump" type="AudioStreamPlayer" parent="sounds" unique_id=1634010640]
+stream = ExtResource("10_cj6ks")
+bus = &"sfx"
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=796574551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.916424, 0)
+visible = false
+light_energy = 13.7
+light_indirect_energy = 5.1
+light_volumetric_fog_energy = 4.3
+light_size = 0.294
+omni_range = 774.396
+omni_attenuation = 1.5
+
+[node name="dust_particles" parent="." unique_id=1424500230 instance=ExtResource("11_e0f4q")]
 
 [connection signal="timeout" from="dash_post_timer" to="." method="_on_dash_post_timer_timeout"]
+[connection signal="area_entered" from="pickup_area" to="." method="_on_pickup_area_area_entered"]
+
+[editable path="russ"]
